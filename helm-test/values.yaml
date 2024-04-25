@@ -1,0 +1,49 @@
+web:
+  name: web
+  replicas: 1
+  containerPort: 8100
+  hostPort: 8100
+  service:
+    portName: web-port
+    port: 8001
+    targetPort: 8100
+
+db:
+  name: db
+  replicas: 1
+  containerPort: 5000
+  hostPort: 5000
+  service:
+    portName: db-port
+    port: 6000
+    targetPort: 5000
+  postgres:
+    name: postgres
+    user: postgres
+    password: admin
+    host: db # Debe necesariamente apuntar al servicio, por lo que podríamos obviar este parámetro y usar db.name
+volume:
+  name: db-claim0
+  kind: PersistentVolumeClaim
+  accessMode: ReadWriteOnce
+  storage: 100Mi
+  mountPath: /var/lib/postgresql/data 
+
+# Los puertos tienen ciertas diferencias en el contexto de K8S
+# Comencemos analizando los puertos en los servicios de K8S.
+# spec:
+#   ports:
+#     - name: "5432"
+#       port: 5432
+#       targetPort: 5432
+# en este caso, el servicio define un puerto de escucha en port,
+# mientras que dirigirá los paquetes hacia el targetPort.
+
+# Sin embargo, en los deployments resulta un poco más confuso
+# ports:
+#             - containerPort: 5432
+#               hostPort: 5432
+# Recordemos que un container se encontrará definido en un pod dentro de un nodo. De esta manera, 
+# containerPort será el puerto de escucha que se define sobre el container corriendo.
+# mientras que hostPort define el puerto en el nodo donde esté corriendo el container donde el puerto del container será expuesto
+# 

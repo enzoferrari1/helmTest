@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # Nombre con el cual será referenciado el SERVICIO para el service discovery desde otros servicios
+  name: {{ .Values.db.name }}
+spec:
+  ports:
+    - name: {{ .Values.db.service.portName }}
+      port: {{ .Values.db.service.port }}
+      targetPort: {{ .Values.db.service.targetPort }}
+  # Debe referenciar al mismo label definido en el metadata del deployment para poder relacionar el servicio con el deployment
+  selector:
+    app: {{ .Values.db.name }}

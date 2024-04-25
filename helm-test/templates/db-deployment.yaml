@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+# Especificar el tipo de objeto. En este caso, usamos Deployments para poder exponer como servicio y controlar un ReplicaSet sobre los pods
+kind: Deployment
+# metadata maneja las anotaciones tales como nombre y labels. Estos serán utilizados para ser referenciados por el resto de del manifest
+# En particular, solo el label será utilizado para referenciar en otras secciones
+# El nombre app: db es arbitrario, cualquiera puede ser utilizado siempre y cuando se sea consistente en el resto de los manifests
+metadata:
+  annotations:
+  # Se utilizará el label para referenciar el deployment, asegurar de que si se cambia el nombre se cambie también en la referencia en el servicio
+  labels:
+    app: {{ .Values.db.name }}
+  name: {{ .Values.db.name }}
+
+# Esta sección spec determina el comportamiento del DEPLOYMENT, que especifica estado deseado de los pods, y cómo se mantendrán.
+spec:
+  # Determina la cantidad de pods deseados. Se utilizará un ReplicaSet para asegurar su consistencia.
+  replicas: {{ .Values.db.replicas }}
+  # El selector determina los pods que afectará esta configuración, usando matchLabels se buscan todos los pods bajo este label.
+  selector:
+    matchLabels:
+      app: {{ .Values.db.name }}
+  # strategy determina el método a utilizar para mantener la cantidad de pods deseada. Recreate en particular elimina el pod en el caso de fallo alguno
+  # Consultar documentación en el caso de elegir otra estrategia.
+  strategy:
+    type: Recreate
+  # La sección template sirve como blueprint o plantilla para los pods que serán creados por nuestro deployment, 
+  # es probable se vean cosas repetidas aquí, como por ejemplo, la metadata y el spec.
+  template:
+    # la metadata es algo que se repite en el resto del manifest. Recordemos que esto será aplicado a cada pod creado,
+    # por lo que será necesario que io.kompose.service: db sea especificado en cada pod para poder ser referenciado
+    metadata:
+      labels:
+        #io.kompose.network/training-team-tuia-default: "true" # Parece ser innecesario
+        app: {{ .Values.db.name }} # Debe ser el mismo a el que esta bajo matchLabels.
+    # Esta sección spec determina el comportamiento deseado de cada POD, a diferencia del anterior, que daba especificaciones del objeto Deployment. 
+    # Veamos cada una en detalle
+    spec:
+      # containers define especificaciones de los CONTAINERS que correrán los pods
+      containers:
+        # Variables de entorno, en este caso, debemos determinar el nombre de la base de datos y su contraseña.
+        - env:
+            - name: POSTGRES_DB
+              value: {{ .Values.db.postgres.name }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.db.postgres.password }}
+            - name: POSTGRES_USER
+              value: {{ .Values.db.postgres.user }}
+          args:
+            - -p
+            - "{{ .Values.db.containerPort }}"
+          # Determina la imagen a utilizar para construir el container
+          image: postgres:16
+          # Nombre del container. Este nombre es usado para referenciar al container dentro del pod.
+          name: {{ .Values.db.name }}
+          ports:
+            - containerPort: {{ .Values.db.containerPort }} 
+              hostPort: {{ .Values.db.hostPort }}
+              protocol: TCP
+          # Similar a los volumenes de Docker.
+          # Como podemos observar existen dos especificaciones de volumenes
+          # Dentro de volumeMounts se especifica donde y como los volumenes deben ser montados dentro de los containers
+          # Esta es una configuración de cada CONTAINER
+          volumeMounts:
+            # Especifica la ruta dentro del contenedor donde debe ser montado el volumen
+            - mountPath: {{ .Values.volume.mountPath }}
+              # nombre que referencia el volumeMount.
+              name: {{ .Values.volume.name }}
+      # Define el comportamiento deseado cuando un container termina.
+      restartPolicy: Always
+      # Esta sección volumes, a diferencia de la anterior, define que volumenes serán montados sobre el pod.
+      # Esta es una configuración a nivel de DEPLOYMENT, no de cada container.
+      # El nombre name debe coincidir con aquel definido en volumeMounts.
+      # persistentVolumeClaim referencia a otro objeto PVC que será creado en conjunto con este deployment (en otro yaml)
+      # Lo que debemos asegurarnos es que el claimName haga referencia al nombre del PVC definido en el otro yaml.
+      volumes:
+        - name: {{ .Values.volume.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.volume.name }}

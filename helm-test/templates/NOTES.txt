@@ -1,0 +1,11 @@
+Aplicación de ejemplo para el proceso de Trainee de Renaiss
+
+Para obtener mas información acerca del release
+$ helm status {{ .Release.Name }}
+$ helm get all {{ .Release.Name }}
+
+Instrucciones para conectarse
+kubectl port-forward service/{{ .Values.web.name }} 8000:{{ .Values.web.service.port }}
+
+Para poder utilizar la aplicación, se debe migrar y poblar la base de datos, para ver las instrucciones ver el readme del repositorio
+{{ .Chart.Home }}

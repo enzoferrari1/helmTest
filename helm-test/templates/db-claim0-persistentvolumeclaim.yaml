@@ -1,0 +1,17 @@
+apiVersion: v1
+# Ver PVC: https://kubernetes.io/es/docs/concepts/storage/persistent-volumes/
+kind: {{ .Values.volume.kind }}
+# Igual que el resto de manifests. el label en este caso no tiene uso. El nombre es lo de mayor importancia
+# El name será utilizado por otros manifests para referenciar a este servicio. Asegurar de que el name en este manifest 
+# coincida con el claimName del persistentVolumeClaim.
+metadata:
+  name: {{ .Values.volume.name }}
+spec:
+  # Especifica cómo y cuántos nodos pueden acceder a este pvc.
+  # En este caso, solo un nodo puede montar este volumen para lectura y escritura. Consultar otros modos para más información.
+  accessModes:
+    - {{ .Values.volume.accessMode }}
+  # self explainatory
+  resources:
+    requests:
+      storage: {{ .Values.volume.storage }}

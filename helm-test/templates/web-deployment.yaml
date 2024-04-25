@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.web.name }}
+  name: {{ .Values.web.name }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.web.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.web.name }}
+    spec:
+      containers:
+        - args:
+            - python
+            - manage.py
+            - runserver
+            - "{{ .Values.web.containerPort }}"
+          env:
+            - name: POSTGRES_NAME
+              value: {{ .Values.db.postgres.name }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.db.postgres.password }}
+            - name: POSTGRES_USER
+              value: {{ .Values.db.postgres.user }}
+            - name: POSTGRES_HOST
+              value: {{ .Values.db.postgres.host }}
+            - name: POSTGRES_PORT
+              value: "{{ .Values.db.service.port }}"
+          image: enzonob/enzo-test
+          name: {{ .Values.web.name }}
+          ports:
+            - containerPort: {{ .Values.web.containerPort }}
+              hostPort: {{ .Values.web.hostPort }}
+              protocol: TCP
+      restartPolicy: Always
