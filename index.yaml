@@ -1,0 +1,16 @@
+apiVersion: v1
+entries:
+  enzo-test:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-04-25T12:35:29.942276689-03:00"
+    description: A simple Django application about a house inventory with a Postgres
+      database
+    digest: b15881225b894b0d5d916b5fee39d2c64847aa3d856bb50ccde6c3285fe195e5
+    home: https://github.com/renaiss-io/training-team-tuia/tree/enzo
+    name: enzo-test
+    type: application
+    urls:
+    - charts/enzo-test-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-04-25T12:35:29.93274621-03:00"
